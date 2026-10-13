@@ -16,6 +16,7 @@ class SchoolSetting extends Model
         'email' => 'hello@shobujridge.edu.bd',
         'address' => 'Road 12, Sector 10, Uttara, Dhaka 1230',
         'office_hours' => 'Sunday–Thursday · 8:00 am–4:00 pm',
+        'map_embed_url' => '',
         'facebook_url' => '',
         'instagram_url' => '',
         'youtube_url' => '',

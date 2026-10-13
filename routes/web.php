@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Admin\AcademicProfileController;
 use App\Http\Controllers\Admin\AdmissionController as AdminAdmissionController;
+use App\Http\Controllers\Admin\ContactEnquiryController as AdminContactEnquiryController;
 use App\Http\Controllers\Admin\ContentSectionController;
 use App\Http\Controllers\Admin\CoreDataController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GalleryImageController;
 use App\Http\Controllers\Admin\NoticeController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\Admin\SchoolSettingsController;
 use App\Http\Controllers\Admin\TeachingAssignmentController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AdmissionController;
+use App\Http\Controllers\ContactEnquiryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicSiteController;
@@ -21,15 +24,20 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
 Route::get('/news-events', [PublicSiteController::class, 'news'])->name('news');
 Route::get('/teachers', [PublicSiteController::class, 'teachers'])->name('public.teachers');
+Route::get('/facilities', [PublicSiteController::class, 'facilities'])->name('public.facilities');
+Route::get('/contact', [PublicSiteController::class, 'contact'])->name('public.contact');
 Route::get('/{page}', [PublicSiteController::class, 'page'])->whereIn('page', ['about', 'academics', 'admissions', 'gallery', 'contact'])->name('public.page');
 Route::post('/admissions/apply', [AdmissionController::class, 'store'])->middleware('throttle:10,1')->name('admissions.apply');
+Route::post('/contact/enquiries', [ContactEnquiryController::class, 'store'])->middleware('throttle:10,1')->name('contact-enquiries.store');
 Route::get('/dashboard', fn () => redirect(auth()->user()->portalPath()))->middleware('auth')->name('dashboard');
 
 Route::middleware(['auth', 'role:super-admin,admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'admin'])->name('dashboard');
     Route::resource('notices', NoticeController::class)->except('show');
     Route::resource('events', EventController::class)->except('show');
+    Route::resource('facilities', FacilityController::class)->except('show');
     Route::resource('admissions', AdminAdmissionController::class)->only(['index', 'show', 'update']);
+    Route::resource('contact-enquiries', AdminContactEnquiryController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::resource('content', ContentSectionController::class)->except('show');
     Route::get('academics', [CoreDataController::class, 'index'])->name('academics.index');
     Route::get('academics/{type}/create', [CoreDataController::class, 'create'])->name('academics.create');

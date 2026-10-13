@@ -22,6 +22,7 @@ class SchoolSettingsRequest extends FormRequest
             'email' => ['required', 'email', 'max:160'],
             'address' => ['required', 'string', 'max:500'],
             'office_hours' => ['nullable', 'string', 'max:200'],
+            'map_embed_url' => ['nullable', 'url', 'max:1000'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'youtube_url' => ['nullable', 'url', 'max:255'],

@@ -6,6 +6,7 @@ use App\Models\ContentSection;
 use App\Models\Gallery;
 use App\Models\Notice;
 use App\Models\SchoolEvent;
+use App\Models\SchoolFacility;
 use App\Models\TeacherProfile;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -50,6 +51,21 @@ class PublicSiteController extends Controller
                 ->orderBy('id')
                 ->get(['id', 'user_id', 'designation', 'photo_path', 'bio', 'public_sort_order']),
         ]);
+    }
+
+    public function facilities(): Response
+    {
+        return Inertia::render('Public/Facilities', [
+            'facilities' => SchoolFacility::published()
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get(['id', 'title', 'description', 'photo_path', 'sort_order']),
+        ]);
+    }
+
+    public function contact(): Response
+    {
+        return Inertia::render('Public/Contact');
     }
 
     private function publishedSections(string $page): mixed
