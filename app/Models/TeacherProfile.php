@@ -38,4 +38,9 @@ class TeacherProfile extends Model
     {
         return $this->hasMany(AttendanceSession::class);
     }
+
+    public function timetables(): HasMany
+    {
+        return $this->hasMany(Timetable::class);
+    }
 }

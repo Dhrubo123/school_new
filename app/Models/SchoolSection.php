@@ -24,4 +24,9 @@ class SchoolSection extends Model
     {
         return $this->hasMany(TeachingAssignment::class);
     }
+
+    public function timetables(): HasMany
+    {
+        return $this->hasMany(Timetable::class);
+    }
 }

@@ -11,7 +11,7 @@ export default function Edit({ settings }: { settings: Settings }) {
     const form = useForm({
         school_name: settings.school_name || '', short_name: settings.short_name || '', eiin: settings.eiin || '',
         phone: settings.phone || '', email: settings.email || '', address: settings.address || '', office_hours: settings.office_hours || '', map_embed_url: settings.map_embed_url || '',
-        facebook_url: settings.facebook_url || '', instagram_url: settings.instagram_url || '', youtube_url: settings.youtube_url || '', logo: null as File | null,
+        facebook_url: settings.facebook_url || '', instagram_url: settings.instagram_url || '', youtube_url: settings.youtube_url || '', logo: null as File | null, _method: '',
     });
     const [preview, setPreview] = useState(settings.logo_path ? `/storage/${settings.logo_path}` : '');
     const chooseLogo = (event: ChangeEvent<HTMLInputElement>) => {
@@ -19,7 +19,7 @@ export default function Edit({ settings }: { settings: Settings }) {
         form.setData('logo', logo);
         if (logo) setPreview(URL.createObjectURL(logo));
     };
-    const submit = (event: FormEvent) => { event.preventDefault(); form.put('/admin/settings', { forceFormData: true }); };
+    const submit = (event: FormEvent) => { event.preventDefault(); form.transform((data) => ({ ...data, _method: 'put' })); form.post('/admin/settings', { forceFormData: true }); };
     const field = (key: Exclude<keyof typeof form.data, 'logo'>, label: string, props: Record<string, unknown> = {}) => <TextField label={label} value={form.data[key]} onChange={event => form.setData(key, event.target.value)} error={!!form.errors[key]} helperText={form.errors[key]} {...props} />;
 
     return <AdminLayout><Head title="School settings" />

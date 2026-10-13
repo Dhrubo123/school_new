@@ -51,11 +51,15 @@ class AcademicProfileController extends Controller
         $data = $request->validate($this->rules($type));
         $this->ensureEligibleUser($type, (int) $data['user_id']);
         $this->ensureStudentSectionMatchesClass($type, $data);
+        [$data, $guardianIds] = $this->extractGuardianIds($type, $data);
 
         $data = $this->prepareTeacherData($request, $type, $data);
 
-        $profile = DB::transaction(function () use ($request, $profileClass, $data, $type) {
+        $profile = DB::transaction(function () use ($request, $profileClass, $data, $type, $guardianIds) {
             $profile = $profileClass::create($data);
+            if ($profile instanceof StudentProfile) {
+                $profile->guardians()->sync($guardianIds);
+            }
             $this->log($request, 'profile.created', $profile, ['type' => $type]);
 
             return $profile;
@@ -79,11 +83,15 @@ class AcademicProfileController extends Controller
         $data = $request->validate($this->rules($type, $profile));
         $this->ensureEligibleUser($type, (int) $data['user_id']);
         $this->ensureStudentSectionMatchesClass($type, $data);
+        [$data, $guardianIds] = $this->extractGuardianIds($type, $data);
         $oldPhoto = $type === 'teachers' ? $profile->photo_path : null;
         $data = $this->prepareTeacherData($request, $type, $data, $profile);
 
-        DB::transaction(function () use ($request, $profile, $data, $type) {
+        DB::transaction(function () use ($request, $profile, $data, $type, $guardianIds) {
             $profile->update($data);
+            if ($profile instanceof StudentProfile) {
+                $profile->guardians()->sync($guardianIds);
+            }
             $this->log($request, 'profile.updated', $profile, ['type' => $type]);
         });
 
@@ -123,14 +131,14 @@ class AcademicProfileController extends Controller
 
     private function find(string $type, int $id): Model
     {
-        return $this->profileClass($type)::query()->findOrFail($id);
+        return $this->profileClass($type)::query()->when($type === 'students', fn ($query) => $query->with('guardians:id,name,email'))->findOrFail($id);
     }
 
     private function eligibleUsers(string $type, string $profileClass, ?int $currentUserId = null)
     {
         $role = $type === 'teachers' ? 'teacher' : 'student';
 
-        return User::query()->whereHas('role', fn ($query) => $query->where('slug', $role))->where(fn ($query) => $query->whereDoesntHave($type === 'teachers' ? 'teacherProfile' : 'studentProfile')->orWhereKey($currentUserId))->orderBy('name')->get(['id', 'name', 'email']);
+        return User::query()->whereHas('role', fn ($query) => $query->where('slug', $role))->where(fn ($query) => $query->whereDoesntHave($type === 'teachers' ? 'teacherProfile' : 'studentProfile')->orWhere('id', $currentUserId))->orderBy('name')->get(['id', 'name', 'email']);
     }
 
     private function ensureEligibleUser(string $type, int $userId): void
@@ -153,7 +161,16 @@ class AcademicProfileController extends Controller
                 'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
                 'remove_photo' => ['nullable', 'boolean'],
             ]
-            : ['user_id' => ['required', 'integer', Rule::unique('student_profiles', 'user_id')->ignore($profile)], 'student_no' => ['nullable', 'string', 'max:50', Rule::unique('student_profiles', 'student_no')->ignore($profile)], 'date_of_birth' => ['nullable', 'date', 'before:today'], 'academic_year_id' => ['required', 'integer', Rule::exists('academic_years', 'id')], 'school_class_id' => ['required', 'integer', Rule::exists('school_classes', 'id')], 'school_section_id' => ['required', 'integer', Rule::exists('school_sections', 'id')]];
+            : [
+                'user_id' => ['required', 'integer', Rule::unique('student_profiles', 'user_id')->ignore($profile)],
+                'student_no' => ['nullable', 'string', 'max:50', Rule::unique('student_profiles', 'student_no')->ignore($profile)],
+                'date_of_birth' => ['nullable', 'date', 'before:today'],
+                'academic_year_id' => ['required', 'integer', Rule::exists('academic_years', 'id')],
+                'school_class_id' => ['required', 'integer', Rule::exists('school_classes', 'id')],
+                'school_section_id' => ['required', 'integer', Rule::exists('school_sections', 'id')],
+                'guardian_user_ids' => ['nullable', 'array'],
+                'guardian_user_ids.*' => ['integer', 'distinct', Rule::exists('users', 'id')],
+            ];
     }
 
     private function prepareTeacherData(Request $request, string $type, array $data, ?TeacherProfile $profile = null): array
@@ -182,9 +199,28 @@ class AcademicProfileController extends Controller
         }
     }
 
+    private function extractGuardianIds(string $type, array $data): array
+    {
+        if ($type !== 'students') {
+            return [$data, []];
+        }
+
+        $guardianIds = collect($data['guardian_user_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values()->all();
+        unset($data['guardian_user_ids']);
+        if ($guardianIds && User::query()->whereIn('id', $guardianIds)->whereHas('role', fn ($query) => $query->where('slug', 'guardian'))->count() !== count($guardianIds)) {
+            throw ValidationException::withMessages(['guardian_user_ids' => 'Choose only user accounts with the Guardian role.']);
+        }
+
+        return [$data, $guardianIds];
+    }
+
     private function formData(string $type): array
     {
-        return $type === 'teachers' ? [] : ['years' => AcademicYear::query()->orderByDesc('is_current')->orderByDesc('starts_on')->get(['id', 'name']), 'classes' => SchoolClass::query()->with('sections:id,school_class_id,name')->orderBy('sort_order')->orderBy('name')->get(['id', 'name'])];
+        return $type === 'teachers' ? [] : [
+            'years' => AcademicYear::query()->orderByDesc('is_current')->orderByDesc('starts_on')->get(['id', 'name']),
+            'classes' => SchoolClass::query()->with('sections:id,school_class_id,name')->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
+            'guardianUsers' => User::query()->whereHas('role', fn ($query) => $query->where('slug', 'guardian'))->orderBy('name')->get(['id', 'name', 'email']),
+        ];
     }
 
     private function label(string $type): string

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContentSection;
 use App\Models\Gallery;
+use App\Models\HomeBanner;
 use App\Models\Notice;
 use App\Models\SchoolEvent;
 use App\Models\SchoolFacility;
@@ -18,6 +19,7 @@ class PublicSiteController extends Controller
         return Inertia::render('Public/Home', [
             'notices' => Notice::published()->latest('published_at')->limit(4)->get(),
             'events' => SchoolEvent::published()->orderBy('starts_at')->limit(4)->get(),
+            'banners' => HomeBanner::published()->orderBy('sort_order')->orderBy('id')->get(['id', 'title', 'subtitle', 'image_path', 'primary_button_label', 'primary_button_url', 'secondary_button_label', 'secondary_button_url']),
             'contentSections' => $this->publishedSections('home'),
         ]);
     }

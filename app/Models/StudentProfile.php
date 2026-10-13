@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StudentProfile extends Model
@@ -38,5 +39,15 @@ class StudentProfile extends Model
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function guardians(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'guardian_student', 'student_profile_id', 'guardian_id');
+    }
+
+    public function examMarks(): HasMany
+    {
+        return $this->hasMany(ExamMark::class);
     }
 }

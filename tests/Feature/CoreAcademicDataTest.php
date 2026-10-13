@@ -30,6 +30,8 @@ class CoreAcademicDataTest extends TestCase
         $teacher = User::factory()->create(['role_id' => $teacherRole->id]);
         $student = User::factory()->create(['role_id' => $studentRole->id]);
 
+        $this->actingAs($admin)->get('/admin/teachers/create')->assertOk();
+
         $this->actingAs($admin)->post('/admin/academics/years', ['name' => '2027', 'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'is_current' => true])->assertRedirect('/admin/academics?tab=years');
         $this->actingAs($admin)->post('/admin/academics/classes', ['name' => 'Class VI', 'code' => 'VI', 'sort_order' => 6])->assertRedirect('/admin/academics?tab=classes');
         $class = SchoolClass::firstOrFail();
