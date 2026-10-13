@@ -1,0 +1,18 @@
+import AdminLayout from '@/Layouts/AdminLayout';
+import { Head, Link, useForm } from '@inertiajs/react';
+import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded';
+import SaveOutlined from '@mui/icons-material/SaveOutlined';
+import { Box, Button, Card, Checkbox, FormControlLabel, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { FormEvent } from 'react';
+
+type Section = { id:number; page_slug:string; section_key:string; title:string; body?:string; is_published:boolean; sort_order:number };
+const pageName = (page:string) => page === 'home' ? 'Homepage' : page.charAt(0).toUpperCase() + page.slice(1);
+
+export default function Form({ content, pages, defaultPage }: { content?:Section; pages:string[]; defaultPage?:string }) {
+    const form = useForm({ page_slug:content?.page_slug || defaultPage || 'home', section_key:content?.section_key || '', title:content?.title || '', body:content?.body || '', is_published:content?.is_published ?? true, sort_order:String(content?.sort_order ?? 100) });
+    const submit = (event:FormEvent) => { event.preventDefault(); content ? form.put(`/admin/content/${content.id}`) : form.post('/admin/content'); };
+    return <AdminLayout><Head title={content ? `Edit ${content.title}` : 'Add website section'} />
+        <Button component={Link} href={`/admin/content?page=${form.data.page_slug}`} color="inherit" startIcon={<ArrowBackRounded />} sx={{mb:3}}>Website content</Button><Box mb={4}><Typography variant="h3" fontFamily="Newsreader">{content ? 'Edit website section' : 'Add website section'}</Typography><Typography color="text.secondary">Use a short, clear title and body. Hidden sections stay saved but do not appear publicly.</Typography></Box>
+        <Card component="form" onSubmit={submit} sx={{p:{xs:3,md:5},maxWidth:850}}><Stack spacing={2.5}><TextField select label="Website page" value={form.data.page_slug} onChange={event => form.setData('page_slug', event.target.value)} error={!!form.errors.page_slug} helperText={form.errors.page_slug}>{pages.map(page => <MenuItem key={page} value={page}>{pageName(page)}</MenuItem>)}</TextField><TextField label="Section key" value={form.data.section_key} onChange={event => form.setData('section_key', event.target.value.toLowerCase().replace(/\s+/g, '-'))} error={!!form.errors.section_key} helperText={form.errors.section_key || 'A unique internal name, using lowercase letters, numbers, and hyphens.'} /><TextField label="Title" value={form.data.title} onChange={event => form.setData('title', event.target.value)} error={!!form.errors.title} helperText={form.errors.title} /><TextField label="Body text" multiline rows={8} value={form.data.body} onChange={event => form.setData('body', event.target.value)} error={!!form.errors.body} helperText={form.errors.body || 'Line breaks are supported.'} /><Stack direction={{xs:'column',sm:'row'}} spacing={2} alignItems={{sm:'center'}}><TextField type="number" label="Display order" value={form.data.sort_order} onChange={event => form.setData('sort_order', event.target.value)} error={!!form.errors.sort_order} helperText={form.errors.sort_order} inputProps={{min:0}} sx={{maxWidth:220}} /><FormControlLabel control={<Checkbox checked={form.data.is_published} onChange={event => form.setData('is_published', event.target.checked)} />} label="Publish this section on the website" /></Stack><Stack direction="row" spacing={2}><Button type="submit" variant="contained" startIcon={<SaveOutlined />} disabled={form.processing}>{form.processing ? 'Saving…' : 'Save section'}</Button><Button component={Link} href={`/admin/content?page=${form.data.page_slug}`} color="inherit">Cancel</Button></Stack></Stack></Card>
+    </AdminLayout>;
+}
