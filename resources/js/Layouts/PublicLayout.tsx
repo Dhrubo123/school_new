@@ -5,7 +5,7 @@ import CloseRounded from '@mui/icons-material/CloseRounded';
 import { ReactNode, useState } from 'react';
 import { PageProps } from '@/types';
 
-const links = [['Home', '/'], ['About', '/about'], ['Academics', '/academics'], ['Admissions', '/admissions'], ['News & Events', '/news-events'], ['Gallery', '/gallery'], ['Contact', '/contact']];
+const links = [['Home', '/'], ['About', '/about'], ['Academics', '/academics'], ['Teachers', '/teachers'], ['Admissions', '/admissions'], ['News & Events', '/news-events'], ['Gallery', '/gallery'], ['Contact', '/contact']];
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
     const [open, setOpen] = useState(false);

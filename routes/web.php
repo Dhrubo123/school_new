@@ -15,10 +15,12 @@ use App\Http\Controllers\AdmissionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\TeacherAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
 Route::get('/news-events', [PublicSiteController::class, 'news'])->name('news');
+Route::get('/teachers', [PublicSiteController::class, 'teachers'])->name('public.teachers');
 Route::get('/{page}', [PublicSiteController::class, 'page'])->whereIn('page', ['about', 'academics', 'admissions', 'gallery', 'contact'])->name('public.page');
 Route::post('/admissions/apply', [AdmissionController::class, 'store'])->middleware('throttle:10,1')->name('admissions.apply');
 Route::get('/dashboard', fn () => redirect(auth()->user()->portalPath()))->middleware('auth')->name('dashboard');
@@ -53,6 +55,8 @@ Route::middleware(['auth', 'role:super-admin,admin'])->prefix('admin')->name('ad
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/teacher/attendance', [TeacherAttendanceController::class, 'index'])->middleware('role:teacher')->name('teacher.attendance.index');
+    Route::post('/teacher/attendance', [TeacherAttendanceController::class, 'store'])->middleware('role:teacher')->name('teacher.attendance.store');
     Route::get('/teacher', fn () => app(DashboardController::class)->portal('teacher'))->middleware('role:teacher')->name('teacher.dashboard');
     Route::get('/guardian', fn () => app(DashboardController::class)->portal('guardian'))->middleware('role:guardian')->name('guardian.dashboard');
     Route::get('/student', fn () => app(DashboardController::class)->portal('student'))->middleware('role:student')->name('student.dashboard');

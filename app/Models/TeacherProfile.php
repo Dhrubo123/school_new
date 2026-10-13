@@ -8,7 +8,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeacherProfile extends Model
 {
-    protected $fillable = ['user_id', 'employee_no', 'phone', 'designation'];
+    protected $fillable = [
+        'user_id',
+        'employee_no',
+        'phone',
+        'designation',
+        'photo_path',
+        'bio',
+        'is_public',
+        'public_sort_order',
+    ];
+
+    protected function casts(): array
+    {
+        return ['is_public' => 'boolean'];
+    }
 
     public function user(): BelongsTo
     {
@@ -18,5 +32,10 @@ class TeacherProfile extends Model
     public function teachingAssignments(): HasMany
     {
         return $this->hasMany(TeachingAssignment::class);
+    }
+
+    public function attendanceSessions(): HasMany
+    {
+        return $this->hasMany(AttendanceSession::class);
     }
 }

@@ -6,6 +6,7 @@ use App\Models\ContentSection;
 use App\Models\Gallery;
 use App\Models\Notice;
 use App\Models\SchoolEvent;
+use App\Models\TeacherProfile;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,6 +37,18 @@ class PublicSiteController extends Controller
         return Inertia::render('Public/News', [
             'notices' => Notice::published()->latest('published_at')->paginate(9, ['*'], 'notices'),
             'events' => SchoolEvent::published()->orderBy('starts_at')->paginate(9, ['*'], 'events'),
+        ]);
+    }
+
+    public function teachers(): Response
+    {
+        return Inertia::render('Public/Teachers', [
+            'teachers' => TeacherProfile::query()
+                ->where('is_public', true)
+                ->with('user:id,name')
+                ->orderBy('public_sort_order')
+                ->orderBy('id')
+                ->get(['id', 'user_id', 'designation', 'photo_path', 'bio', 'public_sort_order']),
         ]);
     }
 
