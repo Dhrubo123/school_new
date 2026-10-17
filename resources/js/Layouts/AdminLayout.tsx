@@ -8,7 +8,7 @@ import { PageProps } from '@/types';
 
 const nav = [
     ['Overview', '/admin'], ['Academic setup', '/admin/academics'], ['Teachers', '/admin/teachers'], ['Students', '/admin/students'],
-    ['Teaching assignments', '/admin/teaching-assignments'], ['Class routines', '/admin/timetables'], ['Examinations', '/admin/examinations'], ['Homepage banners', '/admin/banners'],
+    ['Teaching assignments', '/admin/teaching-assignments'], ['Class routines', '/admin/timetables'], ['Examinations', '/admin/examinations'], ['Fees & payments', '/admin/fee-invoices'], ['Homepage banners', '/admin/banners'],
     ['Website content', '/admin/content'], ['Notices', '/admin/notices'], ['Events', '/admin/events'], ['Facilities', '/admin/facilities'],
     ['Gallery', '/admin/galleries'], ['Admissions', '/admin/admissions'], ['Contact inbox', '/admin/contact-enquiries'],
     ['Users & roles', '/admin/users'], ['Settings', '/admin/settings'],

@@ -12,11 +12,11 @@ class Examination extends Model
 
     public const STATUSES = ['draft', 'reviewing', 'published'];
 
-    protected $fillable = ['academic_year_id', 'title', 'type', 'starts_on', 'ends_on', 'status', 'published_at', 'created_by'];
+    protected $fillable = ['academic_year_id', 'title', 'type', 'starts_on', 'ends_on', 'routine_instructions', 'status', 'published_at', 'routine_published_at', 'created_by'];
 
     protected function casts(): array
     {
-        return ['starts_on' => 'date', 'ends_on' => 'date', 'published_at' => 'datetime'];
+        return ['starts_on' => 'date', 'ends_on' => 'date', 'published_at' => 'datetime', 'routine_published_at' => 'datetime'];
     }
 
     public function academicYear(): BelongsTo

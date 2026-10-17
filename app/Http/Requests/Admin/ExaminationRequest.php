@@ -23,6 +23,7 @@ class ExaminationRequest extends FormRequest
             'type' => ['required', Rule::in(Examination::TYPES)],
             'starts_on' => ['nullable', 'date'],
             'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'routine_instructions' => ['nullable', 'string', 'max:3000'],
         ];
     }
 }

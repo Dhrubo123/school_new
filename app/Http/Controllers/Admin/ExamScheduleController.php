@@ -11,6 +11,7 @@ use App\Models\SchoolSection;
 use App\Models\Subject;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -106,6 +107,27 @@ class ExamScheduleController extends Controller
         if ($exists) {
             throw ValidationException::withMessages(['subject_id' => 'This subject already has a schedule for the selected class and section.']);
         }
+
+        if (! empty($data['starts_at']) && ! empty($data['duration_minutes'])) {
+            $newStart = Carbon::createFromFormat('H:i', $data['starts_at']);
+            $newEnd = $newStart->copy()->addMinutes((int) $data['duration_minutes']);
+            $sameDaySchedules = $examination->schedules()
+                ->where('school_class_id', $data['school_class_id'])
+                ->where('school_section_id', $data['school_section_id'])
+                ->whereDate('exam_date', $data['exam_date'])
+                ->whereNotNull('starts_at')
+                ->whereNotNull('duration_minutes')
+                ->when($ignore, fn ($query) => $query->whereKeyNot($ignore))
+                ->get(['id', 'starts_at', 'duration_minutes']);
+
+            foreach ($sameDaySchedules as $scheduled) {
+                $existingStart = Carbon::parse($scheduled->starts_at);
+                $existingEnd = $existingStart->copy()->addMinutes((int) $scheduled->duration_minutes);
+                if ($newStart->lt($existingEnd) && $newEnd->gt($existingStart)) {
+                    throw ValidationException::withMessages(['starts_at' => 'This class and section already has an overlapping exam at that time.']);
+                }
+            }
+        }
     }
 
     private function assertScheduleBelongsToExam(ExamSchedule $schedule, Examination $examination): void
@@ -117,6 +139,9 @@ class ExamScheduleController extends Controller
     {
         if ($examination->status === 'published') {
             throw ValidationException::withMessages(['examination' => 'Unpublish results before changing schedules.']);
+        }
+        if ($examination->routine_published_at) {
+            throw ValidationException::withMessages(['examination' => 'Unpublish the exam routine before changing schedules.']);
         }
     }
 

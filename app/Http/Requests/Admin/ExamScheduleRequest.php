@@ -21,6 +21,7 @@ class ExamScheduleRequest extends FormRequest
             'exam_date' => ['required', 'date'],
             'starts_at' => ['nullable', 'date_format:H:i'],
             'duration_minutes' => ['nullable', 'integer', 'min:1', 'max:600'],
+            'room' => ['nullable', 'string', 'max:120'],
             'full_marks' => ['required', 'numeric', 'gt:0', 'max:9999'],
             'pass_marks' => ['required', 'numeric', 'min:0', 'lte:full_marks'],
         ];

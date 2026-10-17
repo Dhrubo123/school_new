@@ -134,6 +134,33 @@ class ExaminationController extends Controller
         return back()->with('success', $data['action'] === 'publish' ? 'Results are now published for students and guardians.' : 'Examination status updated.');
     }
 
+    public function changeRoutineStatus(Request $request, Examination $examination): RedirectResponse
+    {
+        $this->authorize('update', $examination);
+        $data = $request->validate(['action' => ['required', Rule::in(['publish', 'unpublish'])]]);
+
+        if ($data['action'] === 'publish') {
+            if (! $examination->schedules()->exists()) {
+                throw ValidationException::withMessages(['routine' => 'Add at least one subject schedule before publishing the exam routine.']);
+            }
+            if ($examination->schedules()->whereNull('starts_at')->exists()) {
+                throw ValidationException::withMessages(['routine' => 'Add a start time to every subject before publishing the exam routine.']);
+            }
+            if ($examination->schedules()->whereNull('duration_minutes')->exists()) {
+                throw ValidationException::withMessages(['routine' => 'Add a duration to every subject before publishing the exam routine.']);
+            }
+        }
+
+        DB::transaction(function () use ($request, $examination, $data) {
+            $examination->update(['routine_published_at' => $data['action'] === 'publish' ? now() : null]);
+            $this->log($request, "examination.routine-{$data['action']}ed", $examination);
+        });
+
+        return back()->with('success', $data['action'] === 'publish'
+            ? 'Exam routine published. Students and guardians can now view it.'
+            : 'Exam routine unpublished. It is now hidden from students and guardians.');
+    }
+
     private function ensureComplete(Examination $examination): void
     {
         $schedules = $examination->schedules()->withCount('marks')->get();
@@ -157,6 +184,9 @@ class ExaminationController extends Controller
     {
         if ($examination->status === 'published') {
             throw ValidationException::withMessages(['examination' => 'Unpublish results before changing this examination.']);
+        }
+        if ($examination->routine_published_at) {
+            throw ValidationException::withMessages(['examination' => 'Unpublish the exam routine before changing this examination.']);
         }
     }
 

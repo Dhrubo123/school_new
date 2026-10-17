@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExamSchedule extends Model
 {
-    protected $fillable = ['examination_id', 'subject_id', 'school_class_id', 'school_section_id', 'exam_date', 'starts_at', 'duration_minutes', 'full_marks', 'pass_marks'];
+    protected $fillable = ['examination_id', 'subject_id', 'school_class_id', 'school_section_id', 'exam_date', 'starts_at', 'duration_minutes', 'room', 'full_marks', 'pass_marks'];
 
     protected function casts(): array
     {

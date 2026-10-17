@@ -9,3 +9,9 @@ body { margin: 0; min-width: 320px; }
 * { box-sizing: border-box; }
 a { color: inherit; }
 ::selection { background: #d8b461; color: #17231f; }
+
+@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+    .print-break-inside-avoid { break-inside: avoid; }
+}

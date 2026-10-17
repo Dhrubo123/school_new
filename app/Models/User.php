@@ -75,6 +75,11 @@ class User extends Authenticatable
         return $this->belongsToMany(StudentProfile::class, 'guardian_student', 'guardian_id', 'student_profile_id');
     }
 
+    public function receivedFeePayments(): HasMany
+    {
+        return $this->hasMany(FeePayment::class, 'received_by');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

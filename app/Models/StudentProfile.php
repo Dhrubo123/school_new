@@ -50,4 +50,9 @@ class StudentProfile extends Model
     {
         return $this->hasMany(ExamMark::class);
     }
+
+    public function feeInvoices(): HasMany
+    {
+        return $this->hasMany(FeeInvoice::class);
+    }
 }
